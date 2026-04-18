@@ -9,14 +9,21 @@
 
 #include "BLE_TX.h"
 #include "options.h"
+#include <esp_bt.h>
 #include <esp_system.h>
 
 #include <BLEDevice.h>
 #include <BLEAdvertising.h>
 #include "parameters.h"
 
+#if defined(CONFIG_BT_BLE_50_FEATURES_SUPPORTED)
+#define BLE_TX_HAS_EXT_ADV 1
+#else
+#define BLE_TX_HAS_EXT_ADV 0
+#endif
 
 
+#if BLE_TX_HAS_EXT_ADV
 //interval min/max are configured for 1 Hz update rate. Somehow dynamic setting of these fields fails
 //shorter intervals lead to more BLE transmissions. This would result in increased power consumption and can lead to more interference to other radio systems.
 static esp_ble_gap_ext_adv_params_t legacy_adv_params = {
@@ -48,6 +55,7 @@ static esp_ble_gap_ext_adv_params_t ext_adv_params_coded = {
     .sid = 1,
     .scan_req_notif = false,
 };
+#endif
 
 /*
   map dBm to a TX power
@@ -58,11 +66,13 @@ uint8_t BLE_TX::dBm_to_tx_power(float dBm) const
         uint8_t level;
         float dBm;
     } dBm_table[] = {
+#if BLE_TX_HAS_EXT_ADV
         { ESP_PWR_LVL_N27,-27 },
         { ESP_PWR_LVL_N24,-24 },
         { ESP_PWR_LVL_N21,-21 },
         { ESP_PWR_LVL_N18,-18 },
         { ESP_PWR_LVL_N15,-15 },
+#endif
         { ESP_PWR_LVL_N12,-12 },
         { ESP_PWR_LVL_N9,  -9 },
         { ESP_PWR_LVL_N6,  -6 },
@@ -71,20 +81,29 @@ uint8_t BLE_TX::dBm_to_tx_power(float dBm) const
         { ESP_PWR_LVL_P3,   3 },
         { ESP_PWR_LVL_P6,   6 },
         { ESP_PWR_LVL_P9,   9 },
+#if BLE_TX_HAS_EXT_ADV
         { ESP_PWR_LVL_P12, 12 },
         { ESP_PWR_LVL_P15, 15 },
         { ESP_PWR_LVL_P18, 18 },
+#endif
     };
     for (const auto &t : dBm_table) {
         if (dBm <= t.dBm) {
             return t.level;
         }
     }
+#if BLE_TX_HAS_EXT_ADV
     return ESP_PWR_LVL_P18;
+#else
+    return ESP_PWR_LVL_P9;
+#endif
 }
 
-
+#if BLE_TX_HAS_EXT_ADV
 static BLEMultiAdvertising advert(2);
+#else
+static BLEAdvertising advert;
+#endif
 
 bool BLE_TX::init(void)
 {
@@ -95,14 +114,29 @@ bool BLE_TX::init(void)
     BLEDevice::init("");
 
     // setup power levels
-    legacy_adv_params.tx_power = dBm_to_tx_power(g.bt4_power);
+    const auto bt4_power = (esp_power_level_t)dBm_to_tx_power(g.bt4_power);
+#if BLE_TX_HAS_EXT_ADV
+    legacy_adv_params.tx_power = bt4_power;
     ext_adv_params_coded.tx_power = dBm_to_tx_power(g.bt5_power);
+#else
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, bt4_power);
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN, bt4_power);
+#endif
 
     // set min/max interval based on output rate    
+#if BLE_TX_HAS_EXT_ADV
     legacy_adv_params.interval_max =  (1000/(g.bt4_rate*7))/0.625;
     legacy_adv_params.interval_min = 0.75*legacy_adv_params.interval_max;
     ext_adv_params_coded.interval_max =  (1000/(g.bt5_rate))/0.625;
     ext_adv_params_coded.interval_min = 0.75*ext_adv_params_coded.interval_max;
+#else
+    const uint16_t interval_max = (1000/(g.bt4_rate*7))/0.625;
+    advert.setScanResponse(false);
+    advert.setAdvertisementType(ADV_TYPE_NONCONN_IND);
+    advert.setAdvertisementChannelMap(ADV_CHNL_ALL);
+    advert.setMaxInterval(interval_max);
+    advert.setMinInterval(interval_max * 0.75f);
+#endif
 
     // generate random mac address
     uint8_t mac_addr[6];
@@ -111,6 +145,7 @@ bool BLE_TX::init(void)
     // set as a bluetooth random static address
     mac_addr[0] |= 0xc0;
 
+#if BLE_TX_HAS_EXT_ADV
     advert.setAdvertisingParams(0, &legacy_adv_params);
     advert.setInstanceAddress(0, mac_addr);
     advert.setDuration(0);
@@ -123,6 +158,12 @@ bool BLE_TX::init(void)
     if (esp_ble_gap_set_prefered_default_phy(ESP_BLE_GAP_PHY_OPTIONS_PREF_S8_CODING, ESP_BLE_GAP_PHY_OPTIONS_PREF_S8_CODING) != ESP_OK) {
         Serial.printf("Failed to setup S8 coding\n");
     }
+#else
+    advert.setDeviceAddress(mac_addr, BLE_ADDR_TYPE_RANDOM);
+    if (g.bt5_rate > 0) {
+        Serial.printf("BT5 long range unsupported on classic ESP32\n");
+    }
+#endif
 
     memset(&msg_counters,0, sizeof(msg_counters));
     return true;
@@ -133,6 +174,10 @@ bool BLE_TX::init(void)
 bool BLE_TX::transmit_longrange(ODID_UAS_Data &UAS_data)
 {
     init();
+#if !BLE_TX_HAS_EXT_ADV
+    (void)UAS_data;
+    return false;
+#else
     // create a packed UAS data message
     uint8_t payload[250];
     int length = odid_message_build_pack(&UAS_data, payload, 255);
@@ -157,6 +202,7 @@ bool BLE_TX::transmit_longrange(ODID_UAS_Data &UAS_data)
     started = true;
 
     return true;
+#endif
 }
 
 bool BLE_TX::transmit_legacy(ODID_UAS_Data &UAS_data)
@@ -307,7 +353,13 @@ bool BLE_TX::transmit_legacy(ODID_UAS_Data &UAS_data)
         legacy_phase %= 6;
     }
 
+#if BLE_TX_HAS_EXT_ADV
     advert.setAdvertisingData(0, legacy_length, legacy_payload);
+#else
+    BLEAdvertisementData advertisement;
+    advertisement.addData(std::string((const char *)legacy_payload, legacy_length));
+    advert.setAdvertisementData(advertisement);
+#endif
 
     if (!started) {
         advert.start();

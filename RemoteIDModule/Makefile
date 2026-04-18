@@ -83,7 +83,7 @@ ArduRemoteID-%.bin: gitversion *.cpp *.ino *.h romfs_files.h
 	@cp build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bin ArduRemoteID_$*_OTA.bin
 	@echo "Merging $*"
 	@python3 $(ESPTOOL) --chip $(CHIP) merge_bin -o ArduRemoteID-$*.bin --flash_size 4MB 0x0 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bootloader.bin 0x8000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.partitions.bin 0xe000 $(ESP32_TOOLS)/partitions/boot_app0.bin 0x10000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bin
-	@mv build build-$*
+	@mv build build-$* || true
 
 boards:
 	@echo "Listing boards"

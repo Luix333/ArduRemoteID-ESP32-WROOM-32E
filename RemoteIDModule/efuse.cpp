@@ -5,12 +5,24 @@
 #include <esp_efuse_table.h>
 #include "parameters.h"
 
+#if !defined(ESP_EFUSE_DIS_DOWNLOAD_MODE) && defined(ESP_EFUSE_UART_DOWNLOAD_DIS)
+#define ESP_EFUSE_DIS_DOWNLOAD_MODE ESP_EFUSE_UART_DOWNLOAD_DIS
+#endif
+
+#if !defined(ESP_EFUSE_DIS_USB_JTAG) && defined(ESP_EFUSE_DISABLE_JTAG)
+#define ESP_EFUSE_DIS_USB_JTAG ESP_EFUSE_DISABLE_JTAG
+#endif
+
 static const struct {
     const esp_efuse_desc_t **desc;
     const char *name;
 } fuses[] = {
+#ifdef ESP_EFUSE_DIS_DOWNLOAD_MODE
     { ESP_EFUSE_DIS_DOWNLOAD_MODE, "DIS_DOWNLOAD_MODE" },
+#endif
+#ifdef ESP_EFUSE_DIS_USB_JTAG
     { ESP_EFUSE_DIS_USB_JTAG, "DIS_USB_JTAG" },
+#endif
 #ifdef ESP_EFUSE_DIS_PAD_JTAG
     { ESP_EFUSE_DIS_PAD_JTAG, "DIS_PAD_JTAG" },
 #endif
