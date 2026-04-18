@@ -14,11 +14,13 @@ where they state that their product is compliant with the RemoteID regulation.
 
 ## Hardware Supported
 
-The firmware currently supports the ESP32-S3 and ESP32-C3 chips. There
-are 7 boards supported so far with more to come:
+The firmware currently supports ESP32, ESP32-S3, and ESP32-C3 chips.
+There are multiple boards supported so far with more to come:
 
  - the ESP32-S3 dev board: https://au.mouser.com/ProductDetail/356-ESP32S3DEVKTM1N8
+ - the ESP32-WROOM-32E breakout (Adafruit AirLift)
  - the ESP32-C3 dev board: https://au.mouser.com/ProductDetail/Espressif-Systems/ESP32-C3-DevKitM-1
+ - the ESP32-C3 0.42 OLED board
  - a Bluemark DB110 (legacy) from https://bluemark.io/ ([product page](https://dronescout.co/dronebeacon-mavlink-remote-id-transponder/))
  - a Bluemark DB200 from https://bluemark.io/ ([product page](https://dronescout.co/dronebeacon-mavlink-remote-id-transponder/) | replaced by the db201))
  - a Bluemark DB201 from https://bluemark.io/ ([product page](https://dronescout.co/dronebeacon-mavlink-remote-id-transponder/) | [buy](https://dronescout.co/product/dronebeacon-mavlink-db201-transponder/))
@@ -35,12 +37,29 @@ For the ESP32-S3 dev board the pins assumed in this firmware are:
  - CAN TX on pin 47
  - CAN RX on pin 38
 
+For the ESP32-WROOM-32E target, using the Adafruit AirLift breakout pinout, the pins assumed in this firmware are:
+
+ - UART TX on pin 1 via the breakout TXO pin
+ - UART RX on pin 3 via the breakout RXI pin
+
+This breakout is primarily designed as an ESP32 SPI coprocessor board, not as a general-purpose dev board.
+No default CAN pins are assigned for this target because the referenced hardware documentation does not define a suitable exposed CAN pin pair.
+
 For the ESP32-C3 dev board the pins assumed in this firmware are:
 
  - UART TX on pin 3
  - UART RX on pin 2
  - CAN TX on pin 5
  - CAN RX on pin 4
+
+For the ESP32-C3 0.42 OLED board the pins assumed in this firmware are:
+
+ - UART TX on pin 21
+ - UART RX on pin 20
+ - status LED on pin 8, active low
+
+The onboard OLED on this board uses I2C on pins 5/6 and is not used by this firmware.
+No default CAN pins are assigned for this target, so it is intended for MAVLink/UART use.
 
 For CAN a suitable 1MBit bxCAN transceiver needs to be connected to
 the CAN TX/RX pins.

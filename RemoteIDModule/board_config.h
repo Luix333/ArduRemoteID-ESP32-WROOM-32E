@@ -14,6 +14,12 @@
 
 #define WS2812_LED_PIN GPIO_NUM_48
 
+#elif defined(BOARD_ESP32_WROOM_32E)
+#define BOARD_ID 13
+
+#define PIN_UART_TX 1
+#define PIN_UART_RX 3
+
 #elif defined(BOARD_ESP32C3_DEV)
 #define BOARD_ID 2
 #define PIN_CAN_TX GPIO_NUM_5
@@ -23,6 +29,15 @@
 #define PIN_UART_RX 2
 
 #define WS2812_LED_PIN GPIO_NUM_8
+
+#elif defined(BOARD_ESP32_C3_042_OLED)
+#define BOARD_ID 14
+
+#define PIN_UART_TX 21
+#define PIN_UART_RX 20
+
+#define PIN_STATUS_LED GPIO_NUM_8
+#define STATUS_LED_OK 0
 
 #elif defined(BOARD_BLUEMARK_DB200)
 #define BOARD_ID 3

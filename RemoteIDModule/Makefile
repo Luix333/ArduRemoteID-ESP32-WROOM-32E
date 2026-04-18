@@ -13,15 +13,22 @@ APP_PARTITION_SIZE=2031616
 # ensure python tools are in $PATH
 export PATH := $(HOME)/.local/bin:$(PATH)
 
+
 .PHONY: headers
 
-all: headers esp32s3dev esp32c3dev bluemark-db200 bluemark-db110 jw-tbd mro-rid jwrid-esp32s3 bluemark-db202 bluemark-db210 bluemark-db203 holybro-RemoteID CUAV-RID
+all: headers esp32s3dev esp32-wroom-32e esp32c3dev esp32-c3-042-oled bluemark-db200 bluemark-db110 jw-tbd mro-rid jwrid-esp32s3 bluemark-db202 bluemark-db210 bluemark-db203 holybro-RemoteID CUAV-RID
 
 esp32s3dev: CHIP=esp32s3
 esp32s3dev: ArduRemoteID-ESP32S3_DEV.bin
 
+esp32-wroom-32e: CHIP=esp32
+esp32-wroom-32e: ArduRemoteID-ESP32_WROOM_32E.bin
+
 esp32c3dev: CHIP=esp32c3
 esp32c3dev: ArduRemoteID-ESP32C3_DEV.bin
+
+esp32-c3-042-oled: CHIP=esp32c3
+esp32-c3-042-oled: ArduRemoteID-ESP32_C3_042_OLED.bin
 
 bluemark-db200: CHIP=esp32c3
 bluemark-db200: ArduRemoteID-BLUEMARK_DB200.bin

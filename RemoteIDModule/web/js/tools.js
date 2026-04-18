@@ -88,8 +88,12 @@ function page_fill_json_html(json) {
 
                     if (json[v] == "1") {
                         document.getElementById("STATUS:BOARD").innerText = "ESP32S3_DEV";
+                    } else if (json[v] == "13") {
+                        document.getElementById("STATUS:BOARD").innerText = "ESP32_WROOM_32E (AirLift)";
                     } else if (json[v] == "2") {
                         document.getElementById("STATUS:BOARD").innerText = "ESP32C3_DEV";
+                    } else if (json[v] == "14") {
+                        document.getElementById("STATUS:BOARD").innerText = "ESP32_C3_042_OLED";
                     } else if (json[v] == "5") {
                         document.getElementById("STATUS:BOARD").innerText = "JW_TBD";
                     } else if (json[v] == "6") {

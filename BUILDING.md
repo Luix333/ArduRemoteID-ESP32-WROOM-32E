@@ -28,10 +28,26 @@
  - cd RemoteIDModule
  - make
 
+To build specifically for the ESP32-WROOM-32E target use:
+
+ - make esp32-wroom-32e
+
+To build specifically for the ESP32-C3 0.42 OLED target use:
+
+ - make esp32-c3-042-oled
+
 ### Step3: Use make to upload
 
  - cd RemoteIDModule
  - make upload
+
+To upload the ESP32-WROOM-32E image specifically use:
+
+ - make upload-ESP32_WROOM_32E
+
+To upload the ESP32-C3 0.42 OLED image specifically use:
+
+ - make upload-ESP32_C3_042_OLED
 
 If the board does not flash, hold-down the BOOT pushbutton on the PCB while pressing the RESET pushbutton briefly [to force it into bootloader mode] and retry.
 The ESP32-S3 is now running and emitting test/demo remote-id bluetooth
@@ -54,5 +70,10 @@ mobile phone App
 and hopefully other open-drone-id compliant receivers.
 
 Plugin your ep32-s3 into a flight-controller CAN port by wiring a standard CAN Tranciever (such as VP231 or similar) to pins 47(tx),38(rx),GND on the pcb.
+
+For the ESP32-WROOM-32E target, based on the Adafruit AirLift breakout, the default MAVLink UART is RXI(GPIO3)/TXO(GPIO1)/GND.
+No default CAN pins are configured for this target.
+
+For the ESP32-C3 0.42 OLED target, the default MAVLink UART is RX(20)/TX(21)/GND. The onboard LED is on GPIO 8 and is active low. The onboard OLED is wired to I2C on GPIO 5/6 and is not currently used by this firmware.
 
 Setup/Configuration of ArduPilot/Mavlink/CAN to communicate together is not documented here, please go to ArduPilot wiki for more, eg: https://ardupilot.org/copter/docs/common-remoteid.html
