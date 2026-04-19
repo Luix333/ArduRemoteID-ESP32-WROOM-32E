@@ -6,6 +6,8 @@ ESP32_TOOLS=$(ARDUINO_HOME)/packages/esp32/hardware/esp32/$(ESP32_VER)/tools
 ESPTOOL=$(ESP32_TOOLS)/esptool.py
 
 ESP32_FQBN=esp32:esp32:$(CHIP)
+BOARD_OPTIONS=
+BOOTLOADER_ADDR=0x0
 SERDEV := $(wildcard /dev/serial/by-id/usb-Espressif_*)
 ARDUINO_CLI=../bin/arduino-cli
 APP_PARTITION_SIZE=2031616
@@ -22,6 +24,8 @@ esp32s3dev: CHIP=esp32s3
 esp32s3dev: ArduRemoteID-ESP32S3_DEV.bin
 
 esp32-wroom-32e: CHIP=esp32
+esp32-wroom-32e: BOARD_OPTIONS=:FlashFreq=40,FlashMode=dio,FlashSize=4M
+esp32-wroom-32e: BOOTLOADER_ADDR=0x1000
 esp32-wroom-32e: ArduRemoteID-ESP32_WROOM_32E.bin
 
 esp32c3dev: CHIP=esp32c3
@@ -79,10 +83,10 @@ ArduRemoteID-%.bin: gitversion *.cpp *.ino *.h romfs_files.h
 	@echo "Building $* on $(CHIP)"
 	@BUILD_FLAGS="-DBOARD_$*"
 	@rm -rf build build-$*
-	@$(ARDUINO_CLI) compile -b esp32:esp32:$(CHIP) --export-binaries --build-property build.extra_flags="-DBOARD_$* -DESP32" --build-property upload.maximum_size=$(APP_PARTITION_SIZE)
+	@$(ARDUINO_CLI) compile -b $(ESP32_FQBN)$(BOARD_OPTIONS) --export-binaries --build-property build.extra_flags="-DBOARD_$* -DESP32" --build-property upload.maximum_size=$(APP_PARTITION_SIZE)
 	@cp build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bin ArduRemoteID_$*_OTA.bin
 	@echo "Merging $*"
-	@python3 $(ESPTOOL) --chip $(CHIP) merge_bin -o ArduRemoteID-$*.bin --flash_size 4MB 0x0 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bootloader.bin 0x8000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.partitions.bin 0xe000 $(ESP32_TOOLS)/partitions/boot_app0.bin 0x10000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bin
+	@python3 $(ESPTOOL) --chip $(CHIP) merge_bin -o ArduRemoteID-$*.bin --flash_size 4MB $(BOOTLOADER_ADDR) build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bootloader.bin 0x8000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.partitions.bin 0xe000 $(ESP32_TOOLS)/partitions/boot_app0.bin 0x10000 build/esp32.esp32.$(CHIP)/RemoteIDModule.ino.bin
 	@mv build build-$* || true
 
 boards:

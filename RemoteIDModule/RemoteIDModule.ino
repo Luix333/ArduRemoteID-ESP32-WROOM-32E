@@ -38,7 +38,7 @@ static MAVLinkSerial mavlink2{Serial,  MAVLINK_COMM_1};
 static WiFi_TX wifi;
 static BLE_TX ble;
 
-#define DEBUG_BAUDRATE 57600
+#define DEBUG_BAUDRATE DEFAULT_BAUDRATE
 
 // OpenDroneID output data structure
 ODID_UAS_Data UAS_data;

@@ -182,3 +182,7 @@
 #else
 #error "unsupported board"
 #endif
+
+#ifndef DEFAULT_BAUDRATE
+#define DEFAULT_BAUDRATE 57600
+#endif
